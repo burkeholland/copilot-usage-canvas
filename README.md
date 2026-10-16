@@ -9,6 +9,14 @@ A canvas for the GitHub Copilot app that shows AI Credit usage for the current b
 - a **Disk space** tab: how much space each session worktree takes, with a button to delete the ones whose session is archived or gone
 - suggestions for saving credits
 
+![Credits used against the plan limit, with a calendar of credits per day](docs/credits.png)
+
+| Drill into a day | See where credits went | Free up disk space |
+| --- | --- | --- |
+| ![One day's hours and sessions](docs/day.png) | ![Credits by model, expanded to show sessions](docs/breakdown.png) | ![Session worktrees by size, with Delete buttons](docs/disk.png) |
+
+_Screenshots use made-up data._
+
 ## Install
 
 Clone this repo into your Copilot extensions folder:
