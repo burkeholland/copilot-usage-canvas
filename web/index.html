@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" data-color-mode="auto" data-light-theme="light" data-dark-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Copilot usage</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="https://unpkg.com/@primer/css@21.5.1/dist/primer.css">
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main class="page">
+    <header class="top">
+      <div>
+        <h1 class="f3 text-normal">Copilot usage</h1>
+        <p class="color-fg-muted" id="period"></p>
+      </div>
+      <div class="top-actions">
+        <span class="f6 color-fg-muted" id="updated" aria-live="polite"></span>
+        <button class="btn btn-sm" id="refresh" type="button">
+          <svg class="octicon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M1.705 8.005a.75.75 0 0 1 .834.656 5.5 5.5 0 0 0 9.592 2.97l-1.204-1.204a.25.25 0 0 1 .177-.427h3.646a.25.25 0 0 1 .25.25v3.646a.25.25 0 0 1-.427.177l-1.38-1.38A7.002 7.002 0 0 1 1.05 8.84a.75.75 0 0 1 .656-.834ZM8 2.5a5.487 5.487 0 0 0-4.131 1.869l1.204 1.204A.25.25 0 0 1 4.896 6H1.25A.25.25 0 0 1 1 5.75V2.104a.25.25 0 0 1 .427-.177l1.38 1.38A7.002 7.002 0 0 1 14.95 7.16a.75.75 0 0 1-1.49.178A5.5 5.5 0 0 0 8 2.5Z"/></svg>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="flash flash-error mb-3" id="error" hidden></div>
+
+    <div class="blankslate" id="empty">
+      <h2 class="blankslate-heading f4">Reading your usage logs</h2>
+      <p class="color-fg-muted">The first load can take up to a minute. Later loads use a cached copy and refresh in the background.</p>
+    </div>
+
+    <div id="app" hidden>
+      <nav class="UnderlineNav mb-4" aria-label="Views">
+        <div class="UnderlineNav-body" role="tablist">
+          <button type="button" class="UnderlineNav-item" role="tab" data-tab="usage" aria-selected="true">Credits</button>
+          <button type="button" class="UnderlineNav-item" role="tab" data-tab="disk" aria-selected="false">Disk space <span class="Counter" id="disk-count" hidden></span></button>
+        </div>
+      </nav>
+
+      <div id="tab-usage" role="tabpanel">
+      <section class="hero period-only" aria-labelledby="used">
+        <p class="hero-num"><span id="used" class="num"></span> <span class="color-fg-muted" id="used-of"></span></p>
+        <div class="meter" id="meter" role="img"></div>
+      </section>
+
+      <p class="callout period-only" id="outlook"></p>
+
+      <section class="block" id="cal-block">
+        <div class="block-head">
+          <h2 class="f4" id="cal-title">Credits by day</h2>
+          <div class="cal-nav" id="cal-nav"></div>
+        </div>
+        <p class="lead" id="cal-lead"></p>
+        <div id="calendar"></div>
+      </section>
+
+      <section class="block period-only">
+        <div class="block-head">
+          <h2 class="f4">Where your credits went</h2>
+          <div class="BtnGroup" role="group" aria-label="Group by">
+            <button class="btn btn-sm BtnGroup-item" data-by="model" aria-pressed="true">Model</button>
+            <button class="btn btn-sm BtnGroup-item" data-by="source" aria-pressed="false">You vs agents</button>
+            <button class="btn btn-sm BtnGroup-item" data-by="project" aria-pressed="false">Project</button>
+          </div>
+        </div>
+        <p class="color-fg-muted f6 mb-2">Select a row to see what it's made of.</p>
+        <div class="bar-row bars-head f6 color-fg-muted" aria-hidden="true"><span id="bars-col"></span><span></span><span class="num">AI Credits</span><span class="num">% of total</span></div>
+        <ul class="bars" id="bars"></ul>
+      </section>
+
+      <section class="block period-only">
+        <h2 class="f4">Most expensive sessions</h2>
+        <p class="color-fg-muted f6 mb-2" id="median"></p>
+        <div class="Box" id="sessions"></div>
+        <button class="btn-link f6 mt-2" id="more-sessions" type="button" hidden></button>
+      </section>
+
+      <section class="block period-only">
+        <h2 class="f4">Ways to save</h2>
+        <ul class="tips" id="tips"></ul>
+      </section>
+      </div>
+
+      <div id="tab-disk" role="tabpanel" hidden>
+        <section class="block">
+          <div class="block-head">
+            <h2 class="f4">Session worktrees</h2>
+            <span id="disk-actions"></span>
+          </div>
+          <p class="lead" id="disk-lead"></p>
+          <div id="disk"></div>
+          <button class="btn-link f6 mt-2" id="more-disk" type="button" hidden></button>
+        </section>
+      </div>
+    </div>
+  </main>
+  <div class="toast-host" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
