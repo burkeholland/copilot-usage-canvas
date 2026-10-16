@@ -163,13 +163,19 @@ export async function build({ home = findHome(), quotaInfo } = {}) {
       return autoCache.get(sid);
     };
     const projCache = new Map();
+    const norm = (p) => (p || "").replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
+    const homeDir = norm(home);
     const projectOf = (sid) => {
       if (projCache.has(sid)) return projCache.get(sid);
       let v = "Other";
-      const st = store.get(sid), w = wf.get(runWf.get(sid));
+      const st = store.get(sid), w = wf.get(runWf.get(sid)), cwd = norm(st?.cwd);
+      // Chats and global automations run inside the Copilot home, so its git repo (if any) says nothing about them.
+      const inHome = cwd === homeDir || cwd.startsWith(homeDir + "/");
       if (app.get(sid)?.type === "general_chat") v = "Chats (no project)";
       else if (projByWs.has(wsBySession.get(sid))) v = projByWs.get(wsBySession.get(sid));
       else if (w && projNameById.has(w.project)) v = projNameById.get(w.project);
+      else if (inHome && cwd.startsWith(homeDir + "/chats/")) v = "Chats (no project)";
+      else if (inHome && autoOf(sid)) v = "Automations (no project)";
       else if (st?.repo) v = repoToProj.get(st.repo.toLowerCase()) || st.repo;
       else if (st?.cwd) v = st.cwd.replace(/[\\/]+$/, "").split(/[\\/]/).pop() || "Other"; // cwd may be a Windows path
       projCache.set(sid, v);
