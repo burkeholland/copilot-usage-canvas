@@ -84,7 +84,7 @@ if (limit) {
     <div class="meter-scale f6 color-fg-muted"><span><b class="color-fg-default">${pct(billed, limit)}</b> used · ${int(left)} left</span><span class="${projected > limit ? 'color-fg-danger' : ''}">On pace for ${int(projected)} by ${dayLabel(P.days)}</span></div>`;
   $('#meter').setAttribute('aria-label', `${pct(billed, limit)} of ${int(limit)} AI Credits used, ${int(left)} left; projected ${int(projected)}`);
   const over = projected > limit, hitDay = Math.ceil(P.elapsed + (limit - billed) / rate);
-  $('#outlook').className = 'callout ' + (over ? 'is-over' : 'is-ok');
+  $('#outlook').className = 'callout period-only ' + (over ? 'is-over' : 'is-ok');
   $('#outlook').innerHTML = over
     ? `At this week's pace (<b>${int(rate)}</b> credits a day) you'll run out on <b>${dayLabel(hitDay)}</b>, ${plural(P.days + 1 - hitDay, 'day')} before your credits reset.`
     : `At this week's pace (<b>${int(rate)}</b> credits a day) you'll use about <b>${int(projected)}</b> by ${dayLabel(P.days)}. You're within your limit.`;
@@ -92,7 +92,7 @@ if (limit) {
   $('#used-of').textContent = 'AI Credits used this month';
   $('#meter').innerHTML = '';
   $('#meter').removeAttribute('aria-label');
-  $('#outlook').className = 'callout is-info';
+  $('#outlook').className = 'callout period-only is-info';
   $('#outlook').innerHTML = `Your plan has no credit limit. At this week's pace (<b>${int(rate)}</b> credits a day) you'll use about <b>${int(projected)}</b> by ${dayLabel(P.days)}.`;
 }
 $('#meter').hidden = !limit;

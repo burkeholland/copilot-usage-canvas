@@ -90,6 +90,7 @@ export async function removeFolder(p, { roots }) {
 
 export async function scanDisk({ home = findHome(), onProgress } = {}) {
   const { byPath, roots } = folderOwners(home);
+  const folders = [];
   for (const root of roots) {
     for (const p of fs.readdirSync(root, { withFileTypes: true })) {
       if (!p.isDirectory()) continue;
