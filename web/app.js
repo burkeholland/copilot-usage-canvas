@@ -5,6 +5,8 @@ const aic = (v) => v.toLocaleString('en-US', { maximumFractionDigits: Math.abs(v
 const int = (v) => Math.round(v).toLocaleString('en-US');
 const tok = (n) => n >= 1e9 ? (n / 1e9).toFixed(1) + 'B' : n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'k' : String(Math.round(n));
 const pct = (a, b) => Math.round((a / b) * 100) + '%';
+// Bar width as a share of the whole, so a bar's length always matches its % column.
+const share = (a, b) => (b > 0 ? Math.min(100, (a / b) * 100) : 0);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const plural = (n, w) => `${int(n)} ${w}${n === 1 ? '' : 's'}`;
 const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -169,11 +171,10 @@ const GROUPS = {
 };
 
 const kidsHtml = (parent, { items, rest }) => {
-  const max = Math.max(...items.map((x) => x.v), rest ? rest.v : 0);
   const row = (name, sub, v, muted) => `
     <li class="kid${muted ? ' kid-rest' : ''}">
       <div class="bar-label"><span>${name}</span>${sub ? `<span class="f6 color-fg-muted">${esc(sub)}</span>` : ''}</div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(v / max) * 100}%"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${share(v, used)}%"></div></div>
       <span class="num">${aic(v)}</span>
       <span class="num color-fg-muted bar-pct">${pct(v, used)}</span>
     </li>`;
@@ -188,7 +189,6 @@ renderBars = function (by, focusName) {
   state.by = by;
   $('#bars-col').textContent = { model: 'Model', source: 'Source', project: 'Project' }[by];
   const rows = GROUPS[by]();
-  const max = Math.max(...rows.map((r) => r.v));
   $('#bars').innerHTML = rows.map((r, i) => `
     <li><details class="bar-item" data-i="${i}">
       <summary class="bar-row">
@@ -196,7 +196,7 @@ renderBars = function (by, focusName) {
           <span class="text-bold">${chevron}${esc(r.name)}</span>
           <span class="f6 color-fg-muted">${esc(r.sub)}</span>
         </div>
-        <div class="bar-track"><div class="bar-fill" style="width:${(r.v / max) * 100}%"></div></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${share(r.v, used)}%"></div></div>
         <span class="num text-bold">${aic(r.v)}</span>
         <span class="num color-fg-muted bar-pct">${pct(r.v, used)}</span>
       </summary>
@@ -279,7 +279,6 @@ const renderDay = (k) => {
     ? `<b>${int(c.aic)}</b> AI Credits across ${plural(c.sessions, 'session')}${split.length > 1 ? ` (${split.join(', ')})` : ''}. The busiest hour was <b>${hh(peak)}</b> with ${int(c.hours[peak])} credits.`
     : 'No credits were used on this day.';
   const level = levelFor(c.hours);
-  const max = c.top.length ? c.top[0][1] : 1;
   const shown = sum(c.top, (x) => x[1]), others = c.sessions - c.top.length;
   $('#calendar').innerHTML = `
     <div class="hours">${c.hours.map((v, h) => `<span class="hm-cell hour l${level(v)}" title="${hh(h)}–${hh((h + 1) % 24)} · ${int(v)} credits">${v >= 0.5 ? compact(v) : ''}</span>`).join('')}</div>
@@ -289,7 +288,7 @@ const renderDay = (k) => {
     <div class="bar-row bars-head flat f6 color-fg-muted" aria-hidden="true"><span>Session</span><span></span><span class="num">AI Credits</span><span class="num">% of day</span></div>
     <ul class="bars flat">${c.top.map(([sid, v]) => { const s = S(sid); return `<li><div class="bar-row">
       <div class="bar-label"><span>${sessName(sid, s)}${s.automation ? ' <span class="Label">Automation</span>' : ''}</span><span class="f6 color-fg-muted">${esc([s.automation, s.project].filter(Boolean).join(' · '))}</span></div>
-      <div class="bar-track"><div class="bar-fill" style="width:${(v / max) * 100}%"></div></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${share(v, c.aic)}%"></div></div>
       <span class="num">${aic(v)}</span><span class="num color-fg-muted bar-pct">${pct(v, c.aic)}</span></div></li>`; }).join('')}
       ${others > 0 && c.aic - shown >= 0.5 ? `<li><div class="bar-row kid-rest"><div class="bar-label"><span>${plural(others, 'other session')}</span></div><span></span><span class="num">${aic(c.aic - shown)}</span><span class="num bar-pct">${pct(c.aic - shown, c.aic)}</span></div></li>` : ''}
     </ul>` : ''}`;
@@ -424,13 +423,12 @@ function renderDisk() {
     : `<b>${bytes(disk.total)}</b> in ${plural(items.length, 'folder')}${staleBytes >= 1e8 ? `. <b>${bytes(staleBytes)}</b> is from archived or deleted sessions` : ''}. ` +
       `<span class="color-fg-muted f6">${st.progress ? `Re-measuring… ${st.progress.done} of ${st.progress.total}` : `Measured ${when.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`}</span>`;
   const list = state.allDisk ? items : items.slice(0, DISK_SHOWN);
-  const max = items.length ? items[0].bytes : 1;
   host.innerHTML = `
     <div class="bar-row bars-head flat disk-row f6 color-fg-muted" aria-hidden="true"><span>Folder</span><span></span><span class="num">Size</span><span></span></div>
     <ul class="bars flat disk">${list.map((x) => `<li><div class="bar-row disk-row">
       <div class="bar-label"><span>${x.status === 'open' && x.openId ? sessName(null, { status: 'open', openId: x.openId, title: x.title || x.name }) : esc(x.title || x.name)}${DISK_STATUS[x.status] || ''}</span>
         <span class="f6 color-fg-muted text-mono" title="${esc(x.path)}">${esc(x.project ? x.project + ' / ' + x.name : x.name)}</span></div>
-      <div class="bar-track"><div class="bar-fill${x.status === 'open' ? '' : ' is-stale'}" style="width:${(x.bytes / max) * 100}%"></div></div>
+      <div class="bar-track"><div class="bar-fill${x.status === 'open' ? '' : ' is-stale'}" style="width:${share(x.bytes, disk.total)}%"></div></div>
       <span class="num text-bold">${bytes(x.bytes)}</span>
       <span class="disk-acts"><button type="button" class="btn-octicon" data-reveal="${esc(x.path)}" title="Show in File Explorer" aria-label="Show ${esc(x.name)} in File Explorer">${FOLDER_SVG}</button>${x.status === 'open'
         ? '<span class="del-spacer" title="Archive the session in the app first"></span>'
